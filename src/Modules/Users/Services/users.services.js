@@ -1,6 +1,9 @@
+import { send } from "node:process";
 import User from "../../../DB/Models/user.model.js"
 import { encrypt } from "../../../Utils/encrypt.symmetric.js";
 import { hashPassword } from "../../../Utils/hashing.js";
+import { sendOTPEmail } from "../../../Utils/send.email.js";
+import { v4 as uniqueString } from "uuid";
 
 export const signup = async (req, res, next) => { 
     
@@ -11,9 +14,6 @@ export const signup = async (req, res, next) => {
             
             return next( new Error("email already exists" ));
         }
-        /*
-        send email
-        */
 
 
         const hashedPassword = hashPassword(password);
@@ -22,9 +22,10 @@ export const signup = async (req, res, next) => {
         const encryptedPhone = encrypt(phone);
         console.log(encryptedPhone);
 
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        sendOTPEmail(email, 'Confirm your email', process.env.OTP_HTML , otp);
         
-        
-        const user = new User({ firstName, lastName,email, password: hashedPassword ,gender,age, phone: encryptedPhone });
+        const user = new User({ firstName, lastName,email, password: hashedPassword ,gender,age, phone: encryptedPhone, 'otps.confirm':otp  });
         await user.save();
         res.status(201).json({message:'account created successfully' , user});
     
