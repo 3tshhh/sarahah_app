@@ -48,6 +48,7 @@ const userSchema = new Schema(
     otps: {
       reset: { type: String, default: null },
       confirm: { type: String, default: null },
+      createdAt: { type: Date, default: null },
     },
     phone: { type: String, default: null },
 

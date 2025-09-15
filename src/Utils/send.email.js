@@ -10,8 +10,9 @@ otpEmitter.on('sendEmail', (to, subject, htmlRead,otp) => {
     console.log(otp);
     // send email 
     let html = fs.readFileSync(htmlRead);
-        html = html.toString().replace(/{{\s*OTP\s*}}/g, otp);
-        const mailOptions = {
+    html = html.toString().replace(/{{\s*OTP\s*}}/g, otp);
+    html = html.toString().replace(/ٍ{{\s*Support@help.net\s*}}/g, process.env.SUPPORT_EMAIL);
+    const mailOptions = {
             from: process.env.EMAIL_USER,
             to,
             subject,
