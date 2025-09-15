@@ -91,3 +91,57 @@ export const resendOTP = async (req, res, next) => {
  * spaghetti code upper code :D
  */
 
+export const login = async (req, res, next) => {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+        return next(new Error("Invalid email or password"));
+    }               
+    if (!compareHash(password, user.password)) {
+        return next(new Error("Invalid email or password"));
+    }   
+    if (!user.isConfirmed) {
+        return next(new Error("Please confirm your email"));
+    }
+    const token = generateToken({ _id: user._id });
+    res.status(200).json({ message: 'login successfully' , token});
+}
+
+export const updateUser = async (req, res, next) => {
+    const { firstName, lastName, email ,gender, age, phone }  = req.body;
+    const { _id } = req.user;
+    const user = await User.findById(_id);
+    if (!user) {
+        return next(new Error("User not found"));
+    }
+    if(email && email !== user.email){
+        const isEmailExist = await User.findOne({ email });
+        if (isEmailExist) {
+            return next( new Error("email already exists" ));
+        }
+        user.email = email;
+        user.isConfirmed = false;
+        const otp = createOTP();    
+        sendOTPEmail(email, 'Confirm your email',constants.OTPTemplate , otp);
+        user.otps.confirm = hash(otp);
+        user.otps.createdAt = Date.now();
+    }  
+    if(firstName) user.firstName = firstName;
+    if(lastName) user.lastName = lastName;
+    if(gender) user.gender  = gender;
+    if(age) user.age = age;
+    if(phone) user.phone = encrypt(phone);
+    await user.save();
+    res.status(200).json({ message: 'user updated successfully' , user});
+
+}
+
+export const deleteUser = async (req, res, next) => {
+    const { _id } = req.user;
+    const user = await User.findById(_id);
+    if (!user) {
+        return next(new Error("User not found"));
+    }
+    await User.findByIdAndDelete(_id);
+    res.status(200).json({ message: 'user deleted successfully' });
+}

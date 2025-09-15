@@ -5,13 +5,12 @@ import EventEmitter from 'events'
 const otpEmitter = new EventEmitter()
 
 otpEmitter.on('sendEmail', (to, subject, html_path,otp) => {
-    //otp 6 numbers generation
+    //otp 6 numbers generation  
 
     console.log(otp);
     // send email 
     let html = fs.readFileSync(html_path);
     html = html.toString().replace(/{{\s*OTP\s*}}/g, otp);
-    html = html.toString().replace(/ٍ{{\s*Support@help.net\s*}}/g, process.env.SUPPORT_EMAIL);
     const mailOptions = {
             from: process.env.EMAIL_USER,
             to,
