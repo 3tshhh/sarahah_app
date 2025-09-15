@@ -5,5 +5,6 @@ const userRouter = Router();
 
 userRouter.post('/signup', user.signup)
 userRouter.post('/confirm-otp', user.confirmOTP)
+userRouter.post('/resend-otp', user.confirmOTP)
 
 export default userRouter;

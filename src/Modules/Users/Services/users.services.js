@@ -1,7 +1,10 @@
 import User from "../../../DB/Models/user.model.js"
+import { createOTP } from "../../../Utils/otp.controller.js";
 import { encrypt } from "../../../Utils/encrypt.symmetric.js";
 import { compareHash, hash } from "../../../Utils/hashing.js";
 import { sendOTPEmail } from "../../../Utils/send.email.js";
+import * as constants from "../../../Constants/constants.strings.js";
+import { generateToken } from "../../../Utils/jwt.js";
 
 export const signup = async (req, res, next) => { 
     
@@ -20,8 +23,8 @@ export const signup = async (req, res, next) => {
     const encryptedPhone = encrypt(phone);
     // console.log(encryptedPhone);
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    sendOTPEmail(email, 'Confirm your email', process.env.OTP_HTML , otp);
+    const otp = createOTP();
+    sendOTPEmail(email, 'Confirm your email',constants.OTPTemplate , otp);
     
     const user = new User({ 
         firstName,
@@ -45,13 +48,46 @@ export const confirmOTP = async (req, res, next) => {
     if (!user) {
         return next(new Error("Invalid email or otp"));
     } 
-    if (!compareHash(otp, user.otps.confirm)|| user.otps.createdAt < Date.now() - 3 * 60 * 1000) {
-
-        return next(new Error("Invalid email or otp"));
+    if(user.otps.createdAt < Date.now() - 3 * 60 * 1000) return next(new Error("otp expired"));
+    
+    if(user.otps.confirm){
+        if (!compareHash(otp, user.otps.confirm)) {
+            return next(new Error("Invalid email or otp"));
+        }
+        user.isConfirmed = true;
+        user.otps.createdAt = null
+        user.otps.confirm = null;
     }
-    user.isConfirmed = true;
-    user.otps.createdAt = null
-    user.otps.confirm = null;
+    if(user.otps.reset){
+        if (!compareHash(otp, user.otps.reset)) {
+            return next(new Error("Invalid email or otp"));
+        }
+        user.otps.createdAt = null
+        user.otps.reset = null;
+    }
+    
     await user.save();
     res.status(200).json({ message: 'email confirmed successfully' , user});
 }
+
+export const resendOTP = async (req, res, next) => {
+    const { email, otpType/*confirm or reset */ } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+        return next(new Error("Invalid email"));
+    }
+    const otp = createOTP();
+    sendOTPEmail(email, 'resend OTP',constants.OTPTemplate , otp);
+
+    user.otps[`${otpType}`] = hash(otp);
+    user.otps.createdAt = Date.now();
+
+    await user.save();
+
+    res.status(200).json({ message: 'otp resent successfully' , user});
+}
+
+/**
+ * spaghetti code upper code :D
+ */
+

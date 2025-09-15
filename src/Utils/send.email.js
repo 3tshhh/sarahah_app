@@ -4,12 +4,12 @@ import EventEmitter from 'events'
 
 const otpEmitter = new EventEmitter()
 
-otpEmitter.on('sendEmail', (to, subject, htmlRead,otp) => {
+otpEmitter.on('sendEmail', (to, subject, html_path,otp) => {
     //otp 6 numbers generation
 
     console.log(otp);
     // send email 
-    let html = fs.readFileSync(htmlRead);
+    let html = fs.readFileSync(html_path);
     html = html.toString().replace(/{{\s*OTP\s*}}/g, otp);
     html = html.toString().replace(/ٍ{{\s*Support@help.net\s*}}/g, process.env.SUPPORT_EMAIL);
     const mailOptions = {
@@ -34,8 +34,8 @@ const transporter = nodemailer.createTransport({
     secure: false,
 });
 
-export const sendOTPEmail = async (to, subject, htmlRead,otp) => {
-        otpEmitter.emit('sendEmail', to, subject, htmlRead, otp);
+export const sendOTPEmail = async (to, subject, html_path,otp) => {
+        otpEmitter.emit('sendEmail', to, subject, html_path, otp);
         
 }
 
