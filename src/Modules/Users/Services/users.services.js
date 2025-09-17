@@ -5,6 +5,7 @@ import { compareHash, hash } from "../../../Utils/hashing.js";
 import { sendOTPEmail } from "../../../Utils/send.email.js";
 import * as constants from "../../../Constants/constants.strings.js";
 import { generateToken } from "../../../Utils/jwt.js";
+import BlackListedToken from "../../../DB/Models/blacklisted-token.model.js";
 
 export const signup = async (req, res, next) => { 
     
@@ -24,7 +25,7 @@ export const signup = async (req, res, next) => {
     // console.log(encryptedPhone);
 
     const otp = createOTP();
-    sendOTPEmail(email, 'Confirm your email',constants.OTPTemplate , otp);
+    // sendOTPEmail(email, 'Confirm your email',constants.OTPTemplate , otp);
     
     const user = new User({ 
         firstName,
@@ -77,7 +78,7 @@ export const resendOTP = async (req, res, next) => {
         return next(new Error("Invalid email"));
     }
     const otp = createOTP();
-    sendOTPEmail(email, 'resend OTP',constants.OTPTemplate , otp);
+    // sendOTPEmail(email, 'resend OTP',constants.OTPTemplate , otp);
 
     user.otps[`${otpType}`] = hash(otp);
     user.otps.createdAt = Date.now();
@@ -104,19 +105,26 @@ export const login = async (req, res, next) => {
         return next(new Error("Please confirm your email"));
     }
     const access_token = generateToken({ _id: user._id }, '1h');
-    const refreshToken = generateToken({ _id: user._id}, '1d');
-    res.status(200).json({ message: 'login successfully' , access_token, refreshToken});
+    // const refreshToken = generateToken({ _id: user._id}, '1d');
+    res.status(200).json({ 
+        message: 'login successfully' , 
+        access_token, 
+        // refreshToken
+    });
 }
 
-// export const 
+export const logout = async (req, res, next) => {
+    const {jti, exp } = req.token;  
+    const expirationDate = new Date(exp * 1000); 
+    const blacklistedToken = await BlackListedToken.create({ tokenId: jti, expirationDate });
+    res.status(200).json({ message: 'logout successfully' ,blacklistedToken});
+}
 
 
-
-
-
-
-
-
+export const listUsers = async (req, res, next) => {
+    const user = req.user
+    res.status(200).json({ message: 'users fetched successfully' , user});
+}
 
 export const updateUser = async (req, res, next) => {
     const { firstName, lastName, email ,gender, age, phone }  = req.body;
@@ -133,7 +141,7 @@ export const updateUser = async (req, res, next) => {
         user.email = email;
         user.isConfirmed = false;
         const otp = createOTP();    
-        sendOTPEmail(email, 'Confirm your email',constants.OTPTemplate , otp);
+        // sendOTPEmail(email, 'Confirm your email',constants.OTPTemplate , otp);
         user.otps.confirm = hash(otp);
         user.otps.createdAt = Date.now();
     }  
@@ -143,7 +151,8 @@ export const updateUser = async (req, res, next) => {
     if(age) user.age = age;
     if(phone) user.phone = encrypt(phone);
     await user.save();
-    res.status(200).json({ message: 'user updated successfully' , user});
+    res.status(200).json({ message: 'user updated successfully' , user}
+    );
 
 }
 
