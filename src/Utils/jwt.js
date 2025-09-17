@@ -1,7 +1,14 @@
 import jwt from "jsonwebtoken";
-
-export const generateToken = (payload) => {
-    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+import {v4 as uuidv4} from "uuid";
+export const generateToken = (payload, expiresin) => {
+    return jwt.sign(
+        payload, 
+        process.env.JWT_SECRET, 
+        { 
+            expiresIn: expiresin,
+            jwtid: uuidv4(), 
+        }
+    );
 }
 
 export const verifyToken = (token) => {

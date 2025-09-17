@@ -71,7 +71,7 @@ export const confirmOTP = async (req, res, next) => {
 }
 
 export const resendOTP = async (req, res, next) => {
-    const { email, otpType/*confirm or reset */ } = req.body;
+    const { email } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
         return next(new Error("Invalid email"));
@@ -103,9 +103,20 @@ export const login = async (req, res, next) => {
     if (!user.isConfirmed) {
         return next(new Error("Please confirm your email"));
     }
-    const token = generateToken({ _id: user._id });
-    res.status(200).json({ message: 'login successfully' , token});
+    const access_token = generateToken({ _id: user._id }, '1h');
+    const refreshToken = generateToken({ _id: user._id}, '1d');
+    res.status(200).json({ message: 'login successfully' , access_token, refreshToken});
 }
+
+// export const 
+
+
+
+
+
+
+
+
 
 export const updateUser = async (req, res, next) => {
     const { firstName, lastName, email ,gender, age, phone }  = req.body;
