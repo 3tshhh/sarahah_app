@@ -114,7 +114,7 @@ export const login = async (req, res, next) => {
 }
 
 export const logout = async (req, res, next) => {
-    const {jti, exp } = req.token;  
+    const {jti, exp } = req.user;  
     const expirationDate = new Date(exp * 1000); 
     const blacklistedToken = await BlackListedToken.create({ tokenId: jti, expirationDate });
     res.status(200).json({ message: 'logout successfully' ,blacklistedToken});
