@@ -2,8 +2,6 @@ import User from "../../../DB/Models/user.model.js"
 import { createOTP } from "../../../Utils/otp.controller.js";
 import { encrypt } from "../../../Utils/encrypt.symmetric.js";
 import { compareHash, hash } from "../../../Utils/hashing.js";
-import { sendOTPEmail } from "../../../Utils/send.email.js";
-import * as constants from "../../../Constants/constants.strings.js";
 import { generateToken } from "../../../Utils/jwt.js";
 import BlackListedToken from "../../../DB/Models/blacklisted-token.model.js";
 
@@ -113,16 +111,18 @@ export const login = async (req, res, next) => {
     });
 }
 
-export const logout = async (req, res, next) => {
-    const {jti, exp } = req.user;  
+export const logout = async (req, res) => {
+    const {token:{tokenId, exp}, user:{_id}} = req.user;  
     const expirationDate = new Date(exp * 1000); 
-    const blacklistedToken = await BlackListedToken.create({ tokenId: jti, expirationDate });
+    const blacklistedToken = await BlackListedToken.create({ tokenId, expirationDate, userId: _id });
     res.status(200).json({ message: 'logout successfully' ,blacklistedToken});
 }
 
 
-export const listUsers = async (req, res, next) => {
+export const listUser = async (req, res) => {
     const user = req.user
+    user.role = "user"
+    user.save();
     res.status(200).json({ message: 'users fetched successfully' , user});
 }
 

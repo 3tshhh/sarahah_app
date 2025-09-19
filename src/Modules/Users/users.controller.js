@@ -10,7 +10,7 @@ userRouter.post('/resend-otp', authenticateMiddleware ,user.resendOTP)
 
 userRouter.post('/login', user.login)
 
-userRouter.get('/list' ,authenticateMiddleware, user.listUsers)
+userRouter.get('/list' ,authenticateMiddleware, user.listUser)
 
 userRouter.post('/logout' ,authenticateMiddleware, user.logout)
 
