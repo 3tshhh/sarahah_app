@@ -21,7 +21,7 @@ export const signup = async (req, res, next) => {
 
   const otp = createOTP();
   sendOTPEmail(email, "Confirm your email", otp);
-  
+
   const user = new User({
     firstName,
     lastName,
@@ -35,35 +35,6 @@ export const signup = async (req, res, next) => {
   });
   await user.save();
   res.status(201).json({ message: "account created successfully", user });
-};
-
-export const confirmEmail = async (req, res, next) => {
-  const { email, otp } = req.body;
-  const user = await User.findOne({ email }, '-password -__v');
-  if (!user) {
-    return next(new Error("Invalid email or otp"));
-  }
-  if (user.otps.createdAt < Date.now() - 3 * 60 * 1000)
-    return next(new Error("otp expired"));
-
-  if (user.otps.confirm) {
-    if (!compareHash(otp, user.otps.confirm)) {
-      return next(new Error("Invalid email or otp"));
-    }
-    user.isConfirmed = true;
-    user.otps.createdAt = null;
-    user.otps.confirm = null;
-  }
-  if (user.otps.reset) {
-    if (!compareHash(otp, user.otps.reset)) {
-      return next(new Error("Invalid email or otp"));
-    }
-    user.otps.createdAt = null;
-    user.otps.reset = null;
-  }
-
-  await user.save();
-  res.status(200).json({ message: "email confirmed successfully", user });
 };
 
 export const resendOTP = async (req, res, next) => {
@@ -99,12 +70,18 @@ export const login = async (req, res, next) => {
   if (!user.isConfirmed) {
     return next(new Error("Please confirm your email"));
   }
-  const accesstoken = generateToken({ _id: user._id }, process.env.JWT_ACCESS_TOKEN_EXPIRE);
-  const refreshToken = generateToken({ _id: user._id }, process.env.JWT_REFRESH_TOKEN_EXPIRE);
+  const accesstoken = generateToken(
+    { _id: user._id },
+    process.env.JWT_ACCESS_TOKEN_EXPIRE
+  );
+  const refreshToken = generateToken(
+    { _id: user._id },
+    process.env.JWT_REFRESH_TOKEN_EXPIRE
+  );
   res.status(200).json({
     message: "login successfully",
     accesstoken,
-    refreshToken
+    refreshToken,
   });
 };
 
@@ -114,14 +91,16 @@ export const refreshToken = async (req, res, next) => {
     return next(new Error("refresh token is required"));
   }
   const decoded = verifyToken(refreshtoken);
-  
-  const accesstoken = generateToken({ _id: decoded._id }, process.env.JWT_ACCESS_TOKEN_EXPIRE);
+
+  const accesstoken = generateToken(
+    { _id: decoded._id },
+    process.env.JWT_ACCESS_TOKEN_EXPIRE
+  );
   res.status(200).json({
     message: "token refreshed successfully",
     accesstoken,
   });
-  
-}
+};
 
 export const listUser = async (req, res) => {
   const user = req.user;
@@ -132,29 +111,35 @@ export const listUser = async (req, res) => {
 
 export const updateUser = async (req, res, next) => {
   const { firstName, lastName, email, gender, age, phone } = req.body;
-  const { _id } = req.user;
-  const user = await User.findById(_id);
-  if (!user) {
-    return next(new Error("User not found"));
-  }
-  if (email && email !== user.email) {
+
+  if (email && email !== req.user.email) {
     const isEmailExist = await User.findOne({ email });
     if (isEmailExist) {
       return next(new Error("email already exists"));
     }
-    user.email = email;
-    user.isConfirmed = false;
-    const otp = createOTP();
-    sendOTPEmail(email, 'Confirm your email',OTPTemplate , otp);
-    user.otps.confirm = hash(otp);
-    user.otps.createdAt = Date.now();
+    let otp = createOTP();
+    sendOTPEmail(email, "Confirm your email", otp);
   }
-  if (firstName) user.firstName = firstName;
-  if (lastName) user.lastName = lastName;
-  if (gender) user.gender = gender;
-  if (age) user.age = age;
-  if (phone) user.phone = encrypt(phone);
-  await user.save();
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      firstName,
+      lastName,
+      email,
+      gender,
+      age,
+      phone: phone? encrypt(phone) : undefined,
+      isConfirmed: email ? false : undefined,
+      "otps.confirm": email ? hash(otp) : undefined,
+      "otps.createdAt": email ? new Date : undefined,
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
   res.status(200).json({ message: "user updated successfully", user });
 };
 

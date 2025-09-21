@@ -6,9 +6,6 @@ import { OTPTemplate } from "../Constants/constants.strings.js";
 const otpEmitter = new EventEmitter();
 
 otpEmitter.on("sendEmail", (to, subject, otp) => {
-  //otp 6 numbers generation
-
-  // send email
   let html = fs.readFileSync(OTPTemplate);
   html = html.toString().replace(/{{\s*OTP\s*}}/g, otp);
   const mailOptions = {
@@ -21,8 +18,6 @@ otpEmitter.on("sendEmail", (to, subject, otp) => {
   transporter.sendMail(mailOptions);
   console.log("Email sent successfully");
 });
-
-
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",

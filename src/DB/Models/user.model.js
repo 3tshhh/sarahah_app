@@ -19,7 +19,7 @@ const userSchema = new Schema(
     email: {
       type: String,
       required: true,
-
+      lowercase: true,
       index: {
         name: "idx_email_unique",
         unique: [false, "email already exists"],
