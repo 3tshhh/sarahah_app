@@ -1,1 +1,1 @@
-export const OTPTemplate = 'src/Constants/EmailTemplates/confirm.otp.html';
+export const OTPTemplate = "src/Constants/EmailTemplates/confirm.otp.html";

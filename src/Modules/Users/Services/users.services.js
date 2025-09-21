@@ -4,6 +4,8 @@ import { encrypt } from "../../../Utils/encrypt.symmetric.js";
 import { compareHash, hash } from "../../../Utils/hashing.js";
 import { generateToken } from "../../../Utils/jwt.js";
 import BlackListedToken from "../../../DB/Models/blacklisted-token.model.js";
+import { sendOTPEmail } from "../../../Utils/send.email.js";
+import { OTPTemplate } from "../../../Constants/constants.strings.js";
 
 export const signup = async (req, res, next) => {
   const { firstName, lastName, email, password, gender, age, phone } = req.body;
@@ -18,8 +20,8 @@ export const signup = async (req, res, next) => {
   const encryptedPhone = encrypt(phone);
 
   const otp = createOTP();
-  sendOTPEmail(email, "Confirm your email", constants.OTPTemplate, otp);
-
+  sendOTPEmail(email, "Confirm your email", otp);
+  
   const user = new User({
     firstName,
     lastName,
@@ -37,7 +39,7 @@ export const signup = async (req, res, next) => {
 
 export const confirmEmail = async (req, res, next) => {
   const { email, otp } = req.body;
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }, '-password -__v');
   if (!user) {
     return next(new Error("Invalid email or otp"));
   }
@@ -71,15 +73,20 @@ export const resendOTP = async (req, res, next) => {
     return next(new Error("Invalid email"));
   }
   const otp = createOTP();
-  sendOTPEmail(email, "resend OTP", constants.OTPTemplate, otp);
+  sendOTPEmail(email, "resend OTP", OTPTemplate, otp);
 
-  user.otps[`${otpType}`] = hash(otp);
+  if (!user.isConfirmed) {
+    user.otps.confirm = hash(otp);
+  } else {
+    user.otps.reset = hash(otp);
+  }
   user.otps.createdAt = Date.now();
 
   await user.save();
 
   res.status(200).json({ message: "otp resent successfully", user });
 };
+
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
@@ -92,14 +99,29 @@ export const login = async (req, res, next) => {
   if (!user.isConfirmed) {
     return next(new Error("Please confirm your email"));
   }
-  const access_token = generateToken({ _id: user._id }, "1h");
-  // const refreshToken = generateToken({ _id: user._id }, "1d");
+  const accesstoken = generateToken({ _id: user._id }, process.env.JWT_ACCESS_TOKEN_EXPIRE);
+  const refreshToken = generateToken({ _id: user._id }, process.env.JWT_REFRESH_TOKEN_EXPIRE);
   res.status(200).json({
     message: "login successfully",
-    access_token,
-    // refreshToken
+    accesstoken,
+    refreshToken
   });
 };
+
+export const refreshToken = async (req, res, next) => {
+  const { refreshtoken } = req.headers;
+  if (!refreshToken) {
+    return next(new Error("refresh token is required"));
+  }
+  const decoded = verifyToken(refreshtoken);
+  
+  const accesstoken = generateToken({ _id: decoded._id }, process.env.JWT_ACCESS_TOKEN_EXPIRE);
+  res.status(200).json({
+    message: "token refreshed successfully",
+    accesstoken,
+  });
+  
+}
 
 export const listUser = async (req, res) => {
   const user = req.user;
@@ -123,7 +145,7 @@ export const updateUser = async (req, res, next) => {
     user.email = email;
     user.isConfirmed = false;
     const otp = createOTP();
-    // sendOTPEmail(email, 'Confirm your email',constants.OTPTemplate , otp);
+    sendOTPEmail(email, 'Confirm your email',OTPTemplate , otp);
     user.otps.confirm = hash(otp);
     user.otps.createdAt = Date.now();
   }
@@ -141,6 +163,7 @@ export const deleteUser = async (req, res, next) => {
   const user = await User.findByIdAndDelete(_id);
   res.status(200).json({ message: "user deleted successfully" });
 };
+
 export const logout = async (req, res) => {
   const {
     token: { tokenId, exp },
