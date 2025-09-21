@@ -21,7 +21,7 @@ export const authenticateMiddleware = async (req, res, next) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const user = await User.findById(decoded?._id, "-password -otps -__v");
+  const user = await User.findById(decoded?._id, "-password -otps -__v").lean();
   if (!user) {
     return res.status(401).json({ message: "Unauthorized" });
   }

@@ -1,16 +1,30 @@
-import crypto from 'crypto';
+import crypto from "crypto";
 
 const IV_LENGTH = 16;
-const encryption = Buffer.from(process.env.ENCRYPTION_KEY)
+const encryption = Buffer.from(process.env.ENCRYPTION_KEY);
 
 export function encrypt(data) {
-    const iv = crypto.randomBytes(IV_LENGTH);
+  const iv = crypto.randomBytes(IV_LENGTH);
 
-    const cipher = crypto.createCipheriv('aes-256-cbc', encryption, iv);
+  const cipher = crypto.createCipheriv("aes-256-cbc", encryption, iv);
 
-    let encrypted = cipher.update(data, 'utf8', 'hex');
+  let encrypted = cipher.update(data, "utf8", "hex");
 
-    encrypted += cipher.final('hex');
+  encrypted += cipher.final("hex");
 
-    return iv.toString('hex') + ':' + encrypted.toString('hex');
+  return iv.toString("hex") + "-" + encrypted.toString("hex");
+}
+
+export function decrypt(text) {
+  const [ivHex, encryptedText] = text.split("-");
+
+  const iv = Buffer.from(ivHex, "hex");
+
+  const decipher = crypto.createDecipheriv("aes-256-cbc", encryption, iv);
+
+  let decrypted = decipher.update(encryptedText, "hex", "utf8");
+
+  decrypted += decipher.final("utf8");
+
+  return decrypted;
 }
