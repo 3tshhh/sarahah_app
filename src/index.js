@@ -11,6 +11,10 @@ app.use(express.json());
 
 app.use('/users', userRouter)
 
+app.use('/',(req,res)=>{
+  res.json({message: 'not found'})
+})
+
 // error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
