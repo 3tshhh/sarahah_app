@@ -12,7 +12,32 @@ import { v4 as uuidv4 } from "uuid";
 
 export const signup = async (req, res, next) => {
   const { firstName, lastName, email, password, gender, age, phone } = req.body;
-  return res.json({ message: "ok" });
+
+  const isEmailExist = await User.findOne({ email, provider: ProvidersEnum.LOCAL });
+  if (isEmailExist) {
+    return next(new Error("email already exists"));
+  }
+
+  const hashedPassword = hash(password);
+
+  const encryptedPhone = encrypt(phone);
+
+  const otp = createOTP();
+  sendOTPEmail(email, "Confirm your email", otp);
+
+  const user = new User({
+    firstName,
+    lastName,
+    email,
+    password: hashedPassword,
+    gender,
+    age,
+    phone: encryptedPhone,
+    "otps.confirm": hash(otp),
+    "otps.createdAt": Date.now(),
+  });
+  await user.save();
+  res.status(201).json({ message: "account created successfully", user });
 };
 
 export const confirmEmail = async (req, res, next) => {
@@ -278,10 +303,10 @@ export const signUpGmail = async (req, res, next) => {
       googleSub: sub,
     });
   } else {
+    newUser = isUserExist;
     isUserExist.email = email;
     isUserExist.firstName = given_name;
     isUserExist.lastName = family_name || " ";
-    newUser = isUserExist;
     await isUserExist.save();
   }
 
