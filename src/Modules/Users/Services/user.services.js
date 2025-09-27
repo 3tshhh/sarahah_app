@@ -243,3 +243,7 @@ export const resetPassword = async (req, res, next) => {
   res.status(200).json({ message: "password reset successfully", user });
 };
 
+
+export const signUpGmail = async (req, res, next) => {
+  res.json({ message: "ok" });
+};

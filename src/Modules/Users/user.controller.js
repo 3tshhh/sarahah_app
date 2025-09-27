@@ -9,6 +9,7 @@ import { signUpSchema } from "../../Validators/Schema/user.schema.js";
 const userRouter = Router();
 
 //auth routes
+userRouter.post("/signup-gmail", user.signUpGmail);
 userRouter.post("/signup",valitationMiddleware(signUpSchema), user.signup);
 userRouter.post("/login", user.login);
 userRouter.post("/confirm-email", user.confirmEmail);

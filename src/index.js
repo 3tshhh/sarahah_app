@@ -3,15 +3,28 @@ import express from "express";
 import { DBConnect } from "./DB/db.connection.js";
 import userRouter from "./Modules/Users/user.controller.js";
 import messageRouter from "./Modules/Messages/message.controller.js";
-
-
+import cors from "cors";
 
 const app = express();
 DBConnect();
 
 app.use(express.json());
 
-app.use('/message', messageRouter)
+const whitelist = process.env.WHITE_LISTED_ORIGINS;
+const corsOptions = {
+  origin: function (origin, callback) {
+    console.log("** Origin of request " + origin);
+    
+    if (whitelist.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+};
+app.use(cors(corsOptions));
+
+app.use("/message", messageRouter);
 app.use("/users", userRouter);
 
 app.use("/", (req, res) => {
