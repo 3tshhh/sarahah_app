@@ -271,7 +271,7 @@ export const resetPassword = async (req, res, next) => {
   res.status(200).json({ message: "password reset successfully", user });
 };
 
-export const signUpGmail = async (req, res, next) => {
+export const authServiceGmail = async (req, res, next) => {
   const { idToken } = req.body;
 
   const client = new OAuth2Client();
@@ -281,10 +281,9 @@ export const signUpGmail = async (req, res, next) => {
     audience: process.env.WEB_CLIENT_ID,
     //[WEB_CLIENT_ID_1, WEB_CLIENT_ID_2, WEB_CLIENT_ID_3]
   });
-  const { email, given_name, family_name, email_verified, sub } =
-    ticket.getPayload();
+  const { email, given_name, family_name, email_verified, sub } = ticket.getPayload();
   if (!email_verified) {
-    return next(new Error("Email not verified"));
+    return res.status(400).json({ message: "email not verified" });
   }
   const isUserExist = await User.findOne({
     googleSub: sub,
