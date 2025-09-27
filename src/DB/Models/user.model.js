@@ -1,5 +1,6 @@
 import { model, Schema } from "mongoose";
 import { GenderEnum, RoleEnum } from "../../Common/enums/user.enum.js";
+import { decrypt } from "../../Utils/encrypt.symmetric.js";
 
 const userSchema = new Schema(
   {
@@ -32,7 +33,7 @@ const userSchema = new Schema(
     },
     gender: {
       type: String,
-      enum: { values: GenderEnum, default: GenderEnum.MALE },
+      enum: { values: Object.values(GenderEnum), default: GenderEnum.MALE },
     },
     age: {
       type: Number,
@@ -65,6 +66,11 @@ const userSchema = new Schema(
       fullName: {
         get() {
           return this.firstName + " " + this.lastName;
+        },
+      },
+      phoneNumber: {
+        get() {
+          return this.phone ? decrypt(this.phone) : null;
         },
       },
     },

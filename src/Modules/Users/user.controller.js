@@ -3,11 +3,13 @@ import * as user from "./Services/user.services.js";
 import { authenticateMiddleware } from "../../Middlewares/authentication.middleware.js";
 import { authorizationMiddleware } from "../../Middlewares/authorization.middleware.js";
 import { Privileges } from "../../Common/enums/user.enum.js";
+import { valitationMiddleware } from "../../Middlewares/validation.middleware.js";
+import { signUpSchema } from "../../Validators/Schema/user.schema.js";
 
 const userRouter = Router();
 
 //auth routes
-userRouter.post("/signup", user.signup);
+userRouter.post("/signup",valitationMiddleware(signUpSchema), user.signup);
 userRouter.post("/login", user.login);
 userRouter.post("/confirm-email", user.confirmEmail);
 userRouter.post("/resend-otp", user.resendOTP);

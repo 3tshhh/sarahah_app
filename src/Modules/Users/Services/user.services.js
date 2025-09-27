@@ -9,32 +9,7 @@ import { OTPTemplate } from "../../../Constants/constants.strings.js";
 
 export const signup = async (req, res, next) => {
   const { firstName, lastName, email, password, gender, age, phone } = req.body;
-
-  const isEmailExist = await User.findOne({ email });
-  if (isEmailExist) {
-    return next(new Error("email already exists"));
-  }
-
-  const hashedPassword = hash(password);
-
-  const encryptedPhone = encrypt(phone);
-
-  const otp = createOTP();
-  sendOTPEmail(email, "Confirm your email", otp);
-
-  const user = new User({
-    firstName,
-    lastName,
-    email,
-    password: hashedPassword,
-    gender,
-    age,
-    phone: encryptedPhone,
-    "otps.confirm": hash(otp),
-    "otps.createdAt": Date.now(),
-  });
-  await user.save();
-  res.status(201).json({ message: "account created successfully", user });
+  return res.json({ message: "ok" });
 };
 
 export const confirmEmail = async (req, res, next) => {
@@ -132,7 +107,10 @@ export const refreshToken = async (req, res, next) => {
 };
 
 export const listUsers = async (req, res) => {
-  const users = await User.find().populate("Messages");
+  const users = await User.find(
+    {},
+    "-password -otp -__v -email -isConfirmed -otps -createdAt -updatedAt"
+  ).populate("Messages");
 
   res.status(200).json({ message: "users fetched successfully", users });
 };
@@ -264,3 +242,4 @@ export const resetPassword = async (req, res, next) => {
   await user.save();
   res.status(200).json({ message: "password reset successfully", user });
 };
+
