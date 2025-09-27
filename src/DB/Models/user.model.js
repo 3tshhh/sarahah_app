@@ -1,4 +1,5 @@
 import { model, Schema } from "mongoose";
+import { GenderEnum, RoleEnum } from "../../Common/enums/user.enum.js";
 
 const userSchema = new Schema(
   {
@@ -31,7 +32,7 @@ const userSchema = new Schema(
     },
     gender: {
       type: String,
-      enum: { values: ["male", "female"], default: "male" },
+      enum: { values: GenderEnum, default: GenderEnum.MALE },
     },
     age: {
       type: Number,
@@ -44,7 +45,11 @@ const userSchema = new Schema(
       },
     },
     isConfirmed: { type: Boolean, default: false },
-    role: { type: String, enum: ["user", "admin"], default: "user" },
+    role: {
+      type: String,
+      enum: Object.values(RoleEnum),
+      default: RoleEnum.USER,
+    },
     otps: {
       reset: { type: String, default: null },
       confirm: { type: String, default: null },
