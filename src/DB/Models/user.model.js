@@ -1,4 +1,4 @@
-import mongoose, { model, Schema } from "mongoose";
+import { model, Schema } from "mongoose";
 
 const userSchema = new Schema(
   {
@@ -41,7 +41,7 @@ const userSchema = new Schema(
       index: {
         name: "idx_age",
         unique: false,
-      }
+      },
     },
     isConfirmed: { type: Boolean, default: false },
     role: { type: String, enum: ["user", "admin"], default: "user" },
@@ -51,19 +51,18 @@ const userSchema = new Schema(
       createdAt: { type: Date, default: null },
     },
     phone: { type: String, default: null },
-
   },
   {
     timestamps: true,
-    // toJSON: { virtuals: true },
-    // toObject: { virtuals: true },
-    // virtuals: {
-    //   fullName: {
-    //     get() {
-    //       return this.firstName + " " + this.lastName;
-    //     },
-    //   },
-    // },
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+    virtuals: {
+      fullName: {
+        get() {
+          return this.firstName + " " + this.lastName;
+        },
+      },
+    },
     methods: {
       getFullName() {
         return this.firstName + " " + this.lastName;
@@ -71,6 +70,17 @@ const userSchema = new Schema(
     },
   }
 );
+
+userSchema.index(
+  { firstName: 1, lastName: 1 },
+  { name: "idx_first_last_unique", unique: true }
+);
+
+userSchema.virtual("Messages", {
+  ref: "Message",
+  localField: "_id",
+  foreignField: "receiverId",
+});
 
 const User = model("User", userSchema);
 

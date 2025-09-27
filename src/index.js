@@ -1,7 +1,8 @@
 import "./Utils/dotenv.js";
 import express from "express";
 import { DBConnect } from "./DB/db.connection.js";
-import userRouter from "./Modules/Users/users.controller.js";
+import userRouter from "./Modules/Users/user.controller.js";
+import messageRouter from "./Modules/Messages/message.controller.js";
 
 
 
@@ -10,6 +11,7 @@ DBConnect();
 
 app.use(express.json());
 
+app.use('/message', messageRouter)
 app.use("/users", userRouter);
 
 app.use("/", (req, res) => {
