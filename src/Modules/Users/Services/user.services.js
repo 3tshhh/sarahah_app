@@ -6,6 +6,9 @@ import { generateToken, verifyToken } from "../../../Utils/jwt.js";
 import BlackListedToken from "../../../DB/Models/blacklisted-token.model.js";
 import { sendOTPEmail } from "../../../Utils/send.email.js";
 import { OTPTemplate } from "../../../Constants/constants.strings.js";
+import { OAuth2Client } from "google-auth-library";
+import { ProvidersEnum } from "../../../Common/enums/user.enum.js";
+import { v4 as uuidv4 } from "uuid";
 
 export const signup = async (req, res, next) => {
   const { firstName, lastName, email, password, gender, age, phone } = req.body;
@@ -64,7 +67,7 @@ export const resendOTP = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email, provider: ProvidersEnum.LOCAL });
   if (!user) {
     return next(new Error("Invalid email or password"));
   }
@@ -243,7 +246,56 @@ export const resetPassword = async (req, res, next) => {
   res.status(200).json({ message: "password reset successfully", user });
 };
 
-
 export const signUpGmail = async (req, res, next) => {
-  res.json({ message: "ok" });
+  const { idToken } = req.body;
+
+  const client = new OAuth2Client();
+
+  const ticket = await client.verifyIdToken({
+    idToken,
+    audience: process.env.WEB_CLIENT_ID,
+    //[WEB_CLIENT_ID_1, WEB_CLIENT_ID_2, WEB_CLIENT_ID_3]
+  });
+  const { email, given_name, family_name, email_verified, sub } =
+    ticket.getPayload();
+  if (!email_verified) {
+    return next(new Error("Email not verified"));
+  }
+  const isUserExist = await User.findOne({
+    googleSub: sub,
+    provider: ProvidersEnum.GOOGLE,
+  });
+
+  let newUser;
+  if (!isUserExist) {
+    newUser = await User.create({
+      firstName: given_name,
+      lastName: family_name || " ",
+      email,
+      provider: ProvidersEnum.GOOGLE,
+      isConfirmed: true,
+      password: hash(uuidv4()),
+      googleSub: sub,
+    });
+  } else {
+    isUserExist.email = email;
+    isUserExist.firstName = given_name;
+    isUserExist.lastName = family_name || " ";
+    newUser = isUserExist;
+    await isUserExist.save();
+  }
+
+  const accesstoken = generateToken(
+    { _id: newUser._id },
+    process.env.JWT_ACCESS_TOKEN_EXPIRE
+  );
+  const refreshToken = generateToken(
+    { _id: newUser._id },
+    process.env.JWT_REFRESH_TOKEN_EXPIRE
+  );
+  return res.json({
+    message: "user signed up successfully",
+    accesstoken,
+    refreshToken,
+  });
 };

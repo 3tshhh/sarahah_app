@@ -19,3 +19,8 @@ export const Privileges = {
     USER_ADMIN: [RoleEnum.USER, RoleEnum.ADMIN],
     USER_SUPER_ADMIN: [RoleEnum.USER, RoleEnum.SUPER_ADMIN],
 }
+
+export const ProvidersEnum = {
+  LOCAL: "local",
+  GOOGLE: "google",
+}

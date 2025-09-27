@@ -1,5 +1,9 @@
 import { model, Schema } from "mongoose";
-import { GenderEnum, RoleEnum } from "../../Common/enums/user.enum.js";
+import {
+  GenderEnum,
+  ProvidersEnum,
+  RoleEnum,
+} from "../../Common/enums/user.enum.js";
 import { decrypt } from "../../Utils/encrypt.symmetric.js";
 
 const userSchema = new Schema(
@@ -7,6 +11,7 @@ const userSchema = new Schema(
     firstName: {
       type: String,
       required: true,
+      lowercase: true,
       trim: true,
       minlength: [3, "too short user name"],
       maxlength: [20, "too long user name"],
@@ -14,9 +19,7 @@ const userSchema = new Schema(
     lastName: {
       type: String,
       required: true,
-      trim: true,
-      minlength: [3, "too short user name"],
-      maxlength: [20, "too long user name"],
+      lowercase: true,
     },
     email: {
       type: String,
@@ -39,7 +42,6 @@ const userSchema = new Schema(
       type: Number,
       min: 18,
       max: 60,
-      required: true,
       index: {
         name: "idx_age",
         unique: false,
@@ -56,7 +58,13 @@ const userSchema = new Schema(
       confirm: { type: String, default: null },
       createdAt: { type: Date, default: null },
     },
-    phone: { type: String, default: null },
+    phone: { type: String },
+    provider: {
+      type: String,
+      enum: Object.values(ProvidersEnum),
+      default: ProvidersEnum.LOCAL,
+    },
+    googleSub: String,
   },
   {
     timestamps: true,
