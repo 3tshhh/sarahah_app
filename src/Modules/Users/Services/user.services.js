@@ -220,19 +220,7 @@ export const updatePassword = async (req, res, next) => {
 
 /**
  *
- * @param {*} req
- * @param {*} res
- * @param {*} next
- * @returns
- * @description forgot password function to send a link to email to reset password
- * the link contains a token which has user id and otp and expires in 15 minutes
- * the otp is hashed and stored in the database
- * the token is encrypted using symmetric encryption
- * the link is sent to the user's email
- * the user can use the link to reset the password
- * the user has to provide the new password
- * the token is decrypted and verified and counted for expiration
- * the otp is compared with the hashed otp in the database
+ * @description sends an email with a link that has an encrypted token has the user id and otp for 15 minutes to reset the password
  *
  */
 export const forgotPassword = async (req, res, next) => {

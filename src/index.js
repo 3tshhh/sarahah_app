@@ -4,6 +4,7 @@ import { DBConnect } from "./DB/db.connection.js";
 import userRouter from "./Modules/Users/user.controller.js";
 import messageRouter from "./Modules/Messages/message.controller.js";
 import cors from "cors";
+import helmet from "helmet";
 
 const app = express();
 DBConnect();
@@ -11,6 +12,7 @@ DBConnect();
 app.use(express.json());
 
 const whitelist = process.env.WHITE_LISTED_ORIGINS;
+
 const corsOptions = {
   origin: function (origin, callback) {
     console.log("** Origin of request " + origin);
@@ -22,7 +24,9 @@ const corsOptions = {
     }
   },
 };
+
 app.use(cors(corsOptions));
+app.use(helmet());
 
 app.use("/message", messageRouter);
 app.use("/users", userRouter);
