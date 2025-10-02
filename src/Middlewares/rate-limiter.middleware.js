@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { getCountryCode } from "../Utils/index.js";
 import MongoStore from "rate-limit-mongo";
 
@@ -6,7 +6,7 @@ export const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max:async function(req) {
     const {country_code} = await getCountryCode(req.headers['x-forwarded-for']);
-    console.log(country_code)
+    // console.log(country_code)
 
     // india 1 requesst egy 50 requests us 100 requests saudi 20 requests 
     if(country_code === 'EG') return 50;
@@ -14,7 +14,7 @@ export const limiter = rateLimit({
     if(country_code === 'US') return 10;
     if(country_code === 'IN') return 10;
     if(country_code === 'BR') return 6;
-    return 5;
+    return 1000;
     
   } ,
   requestPropertyName: "rateLimit",
@@ -27,7 +27,7 @@ export const limiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req /*, res*/) => {
     const ip = ipKeyGenerator(req.headers['x-forwarded-for']);
-    console.log(`the key generator is ${ip}-${req.path}`);
+    // console.log(`the key generator is ${ip}-${req.path}`);
     return `${ip}-${req.path}`;
   },
   store:new MongoStore({

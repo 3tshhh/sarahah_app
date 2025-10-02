@@ -65,6 +65,7 @@ const userSchema = new Schema(
       default: ProvidersEnum.LOCAL,
     },
     googleSub: String,
+    profilePicture: String,
   },
   {
     timestamps: true,

@@ -1,6 +1,6 @@
 import {User, BlackListedToken} from "../../../DB/Models/index.js";
 import * as utils from "../../../Utils/index.js";
-import { OTPTemplate } from "../../../Constants/constants.strings.js";
+import { OTPTemplate } from "../../../Constants/index.js";
 import { OAuth2Client } from "google-auth-library";
 import { ProvidersEnum } from "../../../Common/enums/user.enum.js";
 import { v4 as uuidv4 } from "uuid";

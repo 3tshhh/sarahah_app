@@ -1,6 +1,10 @@
-import {User, BlackListedToken} from "../../../DB/Models/index.js";
-import { createOTP, encrypt, hash, sendOTPEmail } from "../../../Utils/index.js";
-
+import { User, BlackListedToken } from "../../../DB/Models/index.js";
+import {
+  createOTP,
+  encrypt,
+  hash,
+  sendOTPEmail,
+} from "../../../Utils/index.js";
 
 export const listUsers = async (req, res) => {
   const users = await User.find(
@@ -53,4 +57,15 @@ export const deleteUser = async (req, res, next) => {
   const { _id } = req.user;
   const user = await User.findByIdAndDelete(_id);
   res.status(200).json({ message: "user deleted successfully" });
+};
+
+export const uploadProfileImage = async (req, res, next) => {
+  if (!req.file) {
+    return next(new Error("profile image is required"));
+  }
+  const {_id } = req.user;
+  const {path} = req.file;
+
+  const user = await User.findByIdAndUpdate(_id, {profilePicture: path}, {new:true});
+  return res.status(200).json({ message: "profile image uploaded successfully" , user});
 };

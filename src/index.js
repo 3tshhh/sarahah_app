@@ -11,7 +11,7 @@ const app = express();
 DBConnect();
 
 app.use(express.json());
-
+app.use('/uploads', express.static('uploads'));
 app.use(cors(corsOptions));
 app.use(helmet());
 app.use(limiter)

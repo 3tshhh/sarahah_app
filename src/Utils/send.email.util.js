@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import fs from "node:fs";
 import EventEmitter from "events";
-import { OTPTemplate, resetUrl } from "../Constants/constants.strings.js";
+import { OTPTemplate, resetUrl } from "../Constants/strings.constants.js";
 
 const otpEmitter = new EventEmitter();
 
