@@ -4,7 +4,7 @@ import {
   ProvidersEnum,
   RoleEnum,
 } from "../../Common/enums/user.enum.js";
-import { decrypt } from "../../Utils/encrypt.symmetric.js";
+import { decrypt } from "../../Utils/encrypt.symmetric.util.js";
 
 const userSchema = new Schema(
   {
@@ -101,6 +101,5 @@ userSchema.virtual("Messages", {
   foreignField: "receiverId",
 });
 
-const User = model("User", userSchema);
+export const User = model("User", userSchema);
 
-export default User;

@@ -1,12 +1,12 @@
-import BlackListedToken from "../DB/Models/blacklisted-token.model.js";
-import User from "../DB/Models/user.model.js";
-import { verifyToken } from "../Utils/jwt.js";
+import {BlackListedToken} from "../DB/Models/index.js";
+import {User} from "../DB/Models/index.js";
+import { verifyToken } from "../Utils/index.js";
 
 export const authenticateMiddleware = async (req, res, next) => {
   const { authorization } = req.headers;
-    if (!authorization) {
+  if (!authorization) {
     return res.status(401).json({ message: "Unauthorized" });
-    }
+  }
   const [bearrer, token] = authorization.split(" ");
 
   if (!token || !bearrer || bearrer !== "access_token") {
@@ -28,5 +28,3 @@ export const authenticateMiddleware = async (req, res, next) => {
   req.user = { ...user, tokenId: decoded.jti, exp: decoded.exp };
   next();
 };
-
-

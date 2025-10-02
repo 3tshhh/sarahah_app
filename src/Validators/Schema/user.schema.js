@@ -1,5 +1,6 @@
 import Joi from "joi";
 import { GenderEnum } from "../../Common/enums/user.enum.js";
+import { generalRules } from "../../Utils/index.js";
 
 //{ firstName, lastName, email, password, gender, age, phone }
 export const signUpSchema = {
@@ -12,12 +13,8 @@ export const signUpSchema = {
         'any.required': 'first name is a required field'
     }),
     lastName: Joi.string().min(3).max(30).required(),
-    email: Joi.string().email().required(),
-    password: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*])[A-Za-z\d@$!%*]{8,}$/,).required().messages({
-        'string.pattern.base': 'password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number and one special character',
-        'string.empty': 'password cannot be an empty field',
-        'any.required': 'password is a required field'
-    }),
+    email: generalRules.email.required(),
+    password: generalRules.password,
     confirmPassword:Joi.string().valid(Joi.ref('password')).required().messages({'any.only':'confirm password does not match'}),
     gender: Joi.string().valid(...Object.values(GenderEnum)).optional(),
     age: Joi.number().min(13).max(120).required(),
