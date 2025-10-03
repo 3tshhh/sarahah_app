@@ -35,3 +35,22 @@ export const localUpload = ({ folderPath = "samples" }) => {
     storage,
   });
 };
+
+
+export const hostUpload = () => {
+  const storage = multer.diskStorage({});
+
+  const fileFilter = (req, file, cb) => {
+    let [fileKey, fileExtension] = file.mimetype.split("/")
+    const fileType = fileTypes[fileKey.toUpperCase()];
+    
+    if (!fileType) return cb(new Error("Unsupported file type"), false);
+    
+    if(!allowedFileExtensions[fileKey.toLowerCase()].includes(fileExtension)) return cb(new Error("Unsupported file extension"), false);
+    return cb(null, true);
+  }
+  return multer({
+    fileFilter,
+    storage,
+  });
+};

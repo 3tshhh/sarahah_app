@@ -6,6 +6,7 @@ import {
   hash,
   sendOTPEmail,
 } from "../../../Utils/index.js";
+import { DeleteFileCloudinary, uploadFileCloudinary } from "../../../Common/Services/cloudinary.service.js";
 
 export const listUsers = async (req, res) => {
   const users = await User.find(
@@ -72,18 +73,33 @@ export const deleteUser = async (req, res, next) => {
 };
 
 export const uploadProfileImage = async (req, res, next) => {
-  if (!req.file) {
-    return next(new Error("profile image is required"));
-  }
-  const { _id } = req.user;
+  const user = req.user;
   const { path } = req.file;
 
-  const user = await User.findByIdAndUpdate(
-    _id,
-    { profilePicture: path },
-    { new: true }
-  );
+  const uploadResult = await uploadFileCloudinary(path, {
+    folder:'Sarahah_instance/user/profiles',
+    overwrite: true,
+    resource_type: "image",
+  })
+  user.profilePicture ={
+    secure_url:uploadResult.secure_url,
+    public_id:uploadResult.public_id
+  }
+  await user.save();
+
   return res
     .status(200)
-    .json({ message: "profile image uploaded successfully", user });
-};
+    .json({ message: "profile image uploaded successfully", uploadResult });
+}
+
+
+export const deleteProfileImage = async (req, res, next) => {
+  const user = req.user;
+  if(!user.profilePicture?.public_id) return next(new Error("no profile image to delete"));
+  const result = await DeleteFileCloudinary(user.profilePicture.public_id);
+  user.profilePicture = null;
+  await user.save();
+  return res
+    .status(200)
+    .json({ message: "profile image deleted successfully" , result});
+}
