@@ -11,7 +11,7 @@ export const limiter = rateLimit({
     // if(country_code === 'US') return 10;
     // if(country_code === 'IN') return 10;
     // if(country_code === 'BR') return 6;
-    return 1000;
+    return 20;
     
   } ,
   requestPropertyName: "rateLimit",
