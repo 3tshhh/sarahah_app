@@ -5,15 +5,12 @@ import MongoStore from "rate-limit-mongo";
 export const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max:async function(req) {
-    const {country_code} = await getCountryCode(req.headers['x-forwarded-for']);
-    // console.log(country_code)
-
-    // india 1 requesst egy 50 requests us 100 requests saudi 20 requests 
-    if(country_code === 'EG') return 50;
-    if(country_code === 'SA') return 20;
-    if(country_code === 'US') return 10;
-    if(country_code === 'IN') return 10;
-    if(country_code === 'BR') return 6;
+    // const {country_code} = await getCountryCode(req.headers['x-forwarded-for']);
+    // if(country_code === 'EG') return 50;
+    // if(country_code === 'SA') return 20;
+    // if(country_code === 'US') return 10;
+    // if(country_code === 'IN') return 10;
+    // if(country_code === 'BR') return 6;
     return 1000;
     
   } ,

@@ -1,5 +1,5 @@
-import {BlackListedToken} from "../DB/Models/index.js";
-import {User} from "../DB/Models/index.js";
+import { BlackListedToken } from "../DB/Models/index.js";
+import { User } from "../DB/Models/index.js";
 import { verifyToken } from "../Utils/index.js";
 
 export const authenticateMiddleware = async (req, res, next) => {
@@ -21,10 +21,12 @@ export const authenticateMiddleware = async (req, res, next) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const user = await User.findById(decoded?._id, "-password -otps -__v").lean();
+  const user = await User.findById(decoded?._id, "-password -otps -__v");
   if (!user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
-  req.user = { ...user, tokenId: decoded.jti, exp: decoded.exp };
+  req.user = user;
+
+  req.userToken = { tokenId: decoded.jti, expirationDate: new Date(decoded.exp * 1000) };
   next();
 };

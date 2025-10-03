@@ -1,4 +1,4 @@
-import {User, BlackListedToken} from "../../../DB/Models/index.js";
+import { User, BlackListedToken } from "../../../DB/Models/index.js";
 import * as utils from "../../../Utils/index.js";
 import { OTPTemplate } from "../../../Constants/index.js";
 import { OAuth2Client } from "google-auth-library";
@@ -132,15 +132,9 @@ export const refreshToken = async (req, res, next) => {
 };
 
 export const logout = async (req, res) => {
-  const {
-    token: { tokenId, exp },
-    user: { _id },
-  } = req.user;
-  const expirationDate = new Date(exp * 1000);
+  const { userToken } = req;
   const blacklistedToken = await BlackListedToken.create({
-    tokenId,
-    expirationDate,
-    userId: _id,
+    ...userToken,
   });
   res.status(200).json({ message: "logout successfully", blacklistedToken });
 };
@@ -175,8 +169,14 @@ export const forgotPassword = async (req, res, next) => {
   }
   const otp = utils.createOTP();
   user.otps.reset = utils.hash(otp);
-  const resetToken = utils.encrypt(utils.generateToken({ _id: user._id, otp }, "15m"));
-  utils.sendOTPEmail(email, "Reset your password", `reset-password ${resetToken}`); // testing link
+  const resetToken = utils.encrypt(
+    utils.generateToken({ _id: user._id, otp }, "15m")
+  );
+  utils.sendOTPEmail(
+    email,
+    "Reset your password",
+    `reset-password ${resetToken}`
+  ); // testing link
   await user.save();
   res.status(200).json({ message: "otp sent to your email", user });
 };
