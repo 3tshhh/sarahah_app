@@ -16,8 +16,8 @@ app.use(cors(corsOptions));
 app.use(helmet());
 app.use(limiter);
 
-app.use("/api/message", controllers.messageRouter);
-app.use("/api/users", controllers.userRouter, controllers.authRouter);
+app.use("/message", controllers.messageRouter);
+app.use("/users", controllers.userRouter, controllers.authRouter);
 
 app.use("/", (req, res) => {
   res.send('Congratulations! Your server is running successfully.');

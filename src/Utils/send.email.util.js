@@ -1,25 +1,29 @@
 import nodemailer from "nodemailer";
 import fs from "node:fs";
 import EventEmitter from "events";
-import { OTPTemplate, resetUrl } from "../Constants/strings.constants.js";
+import {
+  OTPTemplate,
+  passwordResetTemplate,
+  resetUrl,
+} from "../Constants/strings.constants.js";
 
 const otpEmitter = new EventEmitter();
 
 otpEmitter.on("sendEmail", (to, subject, otp) => {
-  let html = fs.readFileSync(OTPTemplate);
   // html = html.toString().replace(/{{\s*OTP\s*}}<\/div>/g, otp + "</div>");
   // html = html.toString().replace(/{{\s*OTP\s*}}/g, otp);
   // replace <strong>{{OTP}}</strong> with <strong>whats inside</strong>
-  if(otp.includes("reset-password")){
+  let html
+  if (otp.includes("reset-password")) {
     const token = otp.split(" ")[1];
-    html = html.toString().replace(/{{\s*OTP\s*}}/g, token);
-    html = html.toString().replace(new RegExp(`<strong>${token}</strong>`,'g'), `<a>${resetUrl}${token}</a>`);
+    //{{VERIFICATION_LINK}}
+    html = fs.readFileSync(passwordResetTemplate)
+      .toString()
+      .replace(/{{VERIFICATION_LINK}}/g, `${resetUrl}${token}`);
+  } else {
+    html = fs.readFileSync(OTPTemplate).toString().replace(/{{\s*OTP\s*}}/g, otp);
   }
-  else{
-    html = html.toString().replace(/{{\s*OTP\s*}}/g, otp);
 
-  }
-  
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to,
