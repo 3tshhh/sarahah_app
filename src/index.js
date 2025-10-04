@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { DBConnect } from "./DB/db.connection.js";
-import * as controllers from './Modules/controller.index.js'
+import * as controllers from "./Modules/controller.index.js";
 import { corsOptions } from "./Utils/index.js";
 import { errorMiddleware, limiter } from "./Middlewares/index.js";
 
@@ -14,13 +14,13 @@ app.use(express.json());
 
 app.use(cors(corsOptions));
 app.use(helmet());
-app.use(limiter)
+app.use(limiter);
 
 app.use("/api/message", controllers.messageRouter);
 app.use("/api/users", controllers.userRouter, controllers.authRouter);
 
-app.use("/", (req, res) => { 
-  res.json({ message: "not found" });
+app.use("/", (req, res) => {
+  res.send('Congratulations! Your server is running successfully.');
 });
 
 app.use(errorMiddleware);
