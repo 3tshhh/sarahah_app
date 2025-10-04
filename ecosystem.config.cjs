@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "sarahah_app",
       script: "src/index.js", // entry point
-      instances: 4, // number of instances
+      instances: 1, // number of instances
       exec_mode: "cluster", // cluster mode
 
       // Default environment

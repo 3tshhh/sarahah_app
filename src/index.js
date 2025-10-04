@@ -20,10 +20,11 @@ app.use(limiter);
 app.use("/message", controllers.messageRouter);
 app.use("/users", controllers.userRouter, controllers.authRouter);
 
+/*
 app.use("/", (req, res) => {
-  res.send('Congratulations! Your server is running successfully.');
+	 res.send('Congratulations! Your server is running successfully.');
 });
-
+*/
 app.use(errorMiddleware);
 
 
