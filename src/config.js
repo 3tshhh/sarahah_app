@@ -1,4 +1,2 @@
-import path from 'path';
-import dotenv from 'dotenv';
-
-dotenv.config({ path: path.resolve('cloud.env') });
+import dotenv from 'dotenv'
+dotenv.config({path:`.${process.env.NODE_ENV}.env`})
