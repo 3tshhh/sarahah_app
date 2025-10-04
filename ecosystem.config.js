@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "my-app",
+      name: "sarahah_app",
       script: "src/index.js", // entry point
       instances: 4, // number of instances
       exec_mode: "cluster", // cluster mode
