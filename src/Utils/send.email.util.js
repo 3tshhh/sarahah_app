@@ -25,7 +25,7 @@ otpEmitter.on("sendEmail", (to, subject, otp) => {
   }
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: 'Sarahah App <help.sarahah@3tshh.duckdns.org>',
     to,
     subject,
     html,
