@@ -11,6 +11,10 @@ const MessageSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  isPublic:{
+    type: Boolean,
+    default:false
+  }
 });
 
 export const Message = mongoose.model("Message", MessageSchema);
