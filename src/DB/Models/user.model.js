@@ -69,6 +69,9 @@ const userSchema = new Schema(
       secure_url:String,
       public_id:String
     },
+    devices:[
+      { type: [String] },
+    ]
   },
   {
     timestamps: true,

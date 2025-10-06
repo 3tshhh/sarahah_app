@@ -89,6 +89,7 @@ export const resendOTP = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
+  const device = req.deviceInfo;
   const user = await User.findOne({ email, provider: ProvidersEnum.LOCAL });
   if (!user) {
     return next(new Error("Invalid email or password"));
@@ -98,6 +99,14 @@ export const login = async (req, res, next) => {
   }
   if (!user.isConfirmed) {
     return next(new Error("Please confirm your email"));
+  }
+  if (!user.devices.includes(device)) {
+    if (user.devices.length < 2) {
+      user.devices.push(device);
+      await user.save();
+    } else {
+      return next(new Error('Login limit reached. You can only log in from 2 devices.'))
+    }
   }
   const accesstoken = utils.generateToken(
     { _id: user._id },

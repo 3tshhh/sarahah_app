@@ -15,7 +15,7 @@ app.use(express.json());
 
 app.use(cors(corsOptions));
 app.use(helmet());
-app.use(limiter);
+// app.use(limiter);
 
 app.use("/message", controllers.messageRouter);
 app.use("/users", controllers.userRouter, controllers.authRouter);
