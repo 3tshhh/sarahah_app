@@ -2,20 +2,26 @@ import "./config.js";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { DBConnect } from "./DB/db.connection.js";
+import * as DB from "./DB/Connections/index.js";
 import * as controllers from "./Modules/controller.index.js";
-import { corsOptions } from "./Utils/index.js";
-import { errorMiddleware, limiter } from "./Middlewares/index.js";
+import { corsOptions, isTokenBlackListed } from "./Utils/index.js";
+import {
+  authenticateMiddleware,
+  errorMiddleware,
+  limiter,
+} from "./Middlewares/index.js";
 import "./Cron-jobs/index.js";
 
 const app = express();
-DBConnect();
-
+DB.MongoConnect();
+DB.redisConnect();
 app.use(express.json());
 
 app.use(cors(corsOptions));
 app.use(helmet());
 // app.use(limiter);
+
+
 
 app.use("/message", controllers.messageRouter);
 app.use("/users", controllers.userRouter, controllers.authRouter);

@@ -1,6 +1,8 @@
+import crypto from "crypto";
 export const createOTP = () => {
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log(otp);// i'll remove it later
+    const otp = crypto.randomBytes(3).toString("hex");
+    console.log(otp);
+    
     return otp;
 }
 

@@ -37,7 +37,7 @@ export const signup = async (req, res, next) => {
   res.status(201).json({ message: "account created successfully", user });
 };
 
-export const confirmEmail = async (req, res, next) => {
+export const confirmAccount = async (req, res, next) => {
   const { email, otp } = req.body;
   const user = await User.findOne({ email }, "-password -__v");
   if (!user) {
@@ -105,7 +105,9 @@ export const login = async (req, res, next) => {
       user.devices.push(device);
       await user.save();
     } else {
-      return next(new Error('Login limit reached. You can only log in from 2 devices.'))
+      return next(
+        new Error("Login limit reached. You can only log in from 2 devices.")
+      );
     }
   }
   const accesstoken = utils.generateToken(
@@ -142,9 +144,10 @@ export const refreshToken = async (req, res, next) => {
 
 export const logout = async (req, res) => {
   const { userToken } = req;
-  const blacklistedToken = await BlackListedToken.create({
-    ...userToken,
-  });
+  // const blacklistedToken = await BlackListedToken.create({
+  //   ...userToken,
+  // });
+  const blacklistedToken = await utils.BlackListToken(userToken);
   res.status(200).json({ message: "logout successfully", blacklistedToken });
 };
 
@@ -154,7 +157,7 @@ export const updatePassword = async (req, res, next) => {
   if (!utils.compareHash(oldPassword, user.password)) {
     return next(new Error("Invalid old password"));
   }
-  if (utils.compareHash(newPassword, user.password)) {
+  if (newPassword === oldPassword) {
     return next(new Error("New password must be different from old password"));
   }
   user.password = utils.hash(newPassword);

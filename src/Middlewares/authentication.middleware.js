@@ -1,6 +1,6 @@
 import { BlackListedToken } from "../DB/Models/index.js";
 import { User } from "../DB/Models/index.js";
-import { verifyToken } from "../Utils/index.js";
+import { isTokenBlackListed, verifyToken } from "../Utils/index.js";
 
 export const authenticateMiddleware = async (req, res, next) => {
   const { authorization } = req.headers;
@@ -14,10 +14,7 @@ export const authenticateMiddleware = async (req, res, next) => {
   }
   const decoded = verifyToken(token);
 
-  const isBlacklisted = await BlackListedToken.findOne({
-    tokenId: decoded.jti,
-  });
-  if (isBlacklisted) {
+  if (await isTokenBlackListed(decoded.jti)) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -27,6 +24,6 @@ export const authenticateMiddleware = async (req, res, next) => {
   }
   req.user = user;
 
-  req.userToken = { tokenId: decoded.jti, expirationDate: new Date(decoded.exp * 1000) };
+  req.userToken = { tokenId: decoded.jti, expirationDate: new Date(decoded.exp * 1000),  userId : user._id }; // exp is in seconds
   next();
 };

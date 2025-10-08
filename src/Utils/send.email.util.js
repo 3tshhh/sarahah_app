@@ -21,7 +21,7 @@ otpEmitter.on("sendEmail", (to, subject, otp) => {
       .toString()
       .replace(/{{VERIFICATION_LINK}}/g, `${resetUrl}${token}`);
   } else {
-    html = fs.readFileSync(OTPTemplate).toString().replace(/{{\s*OTP\s*}}/g, otp);
+    html = fs.readFileSync(OTPTemplate).toString().replace(/{{\s*OTP\s*}}/g, otp.toUpperCase());
   }
 
   const mailOptions = {

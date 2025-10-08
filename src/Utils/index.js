@@ -4,5 +4,7 @@ export * from "./encrypt.symmetric.util.js";
 export * from "./hashing.util.js";
 export * from "./otp.util.js";
 export * from "./send.email.util.js";
-export * from './jwt.util.js';
+export * from "./jwt.util.js";
 export * from "./general-rules.util.js";
+export * from "./Redis/redis.store.util.js";
+export * from "./Redis/redis.queries.util.js";
