@@ -6,13 +6,11 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// One File Upload
 export const uploadFileCloudinary = async (file, options) => {
   const result = await cloudinary.uploader.upload(file, options);
   return result;
 };
 
-// Multiple Files Upload
 export const uploadMultipleFilesCloudinary = async (files, options) => {
   const result = [];
   for (const file of files) {
@@ -22,13 +20,11 @@ export const uploadMultipleFilesCloudinary = async (files, options) => {
   return result;
 };
 
-// public id
 export const DeleteFileCloudinary = async (public_id) => {
   const result = await cloudinary.uploader.destroy(public_id);
   return result;
 };
 
-// public ids array
 export const DeleteManyCloudinary = async (public_ids, options) => {
   const result = await cloudinary.api.delete_resources(public_ids, options);
   return result;

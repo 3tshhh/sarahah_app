@@ -2,7 +2,6 @@ import Joi from "joi";
 import { GenderEnum } from "../../Common/enums/user.enum.js";
 import { generalRules } from "../../Utils/index.js";
 
-//{ firstName, lastName, email, password, gender, age, phone }
 export const signUpSchema = {
   body: Joi.object({
     firstName: Joi.string().min(3).max(30).alphanum().required().messages({
@@ -28,5 +27,4 @@ export const signUpSchema = {
       .pattern(/^[0-9]{10,15}$/)
       .required(),
   }),
-  //   query: Joi.object({}),
 };

@@ -10,13 +10,9 @@ import {
 const otpEmitter = new EventEmitter();
 
 otpEmitter.on("sendEmail", (to, subject, otp) => {
-  // html = html.toString().replace(/{{\s*OTP\s*}}<\/div>/g, otp + "</div>");
-  // html = html.toString().replace(/{{\s*OTP\s*}}/g, otp);
-  // replace <strong>{{OTP}}</strong> with <strong>whats inside</strong>
   let html
   if (otp.includes("reset-password")) {
     const token = otp.split(" ")[1];
-    //{{VERIFICATION_LINK}}
     html = fs.readFileSync(passwordResetTemplate)
       .toString()
       .replace(/{{VERIFICATION_LINK}}/g, `${resetUrl}${token}`);
@@ -25,14 +21,13 @@ otpEmitter.on("sendEmail", (to, subject, otp) => {
   }
 
   const mailOptions = {
-    from: 'Sarahah App <help.sarahah@3tshh.duckdns.org>',
+    from: 'Sarahah App',
     to,
     subject,
     html,
   };
 
   transporter.sendMail(mailOptions);
-  console.log("Email sent successfully");
 });
 
 const transporter = nodemailer.createTransport({
