@@ -54,12 +54,8 @@ export const updateUser = async (req, res, next) => {
 
 export const deleteUser = async (req, res, next) => {
   const user = req.user;
+  await DeleteFileCloudinary(user.profilePicture.public_id);
   const deletedUser = await user.deleteOne();
-  try {
-    fs.unlinkSync(deletedUser.profilePicture);
-  } catch (err) {
-    return next;
-  }
   const blacklistedToken = await BlackListedToken.create({
     tokenId: req.userToken.tokenId,
     expirationDate: new Date(req.user.exp * 1000),
