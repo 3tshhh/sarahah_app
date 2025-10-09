@@ -4,6 +4,7 @@ import { OTPTemplate } from "../../../Constants/index.js";
 import { OAuth2Client } from "google-auth-library";
 import { ProvidersEnum } from "../../../Common/enums/user.enum.js";
 import { v4 as uuidv4 } from "uuid";
+
 export const signup = async (req, res, next) => {
   const { firstName, lastName, email, password, gender, age, phone } = req.body;
 
@@ -185,7 +186,7 @@ export const forgotPassword = async (req, res, next) => {
     email,
     "Reset your password",
     `reset-password ${resetToken}`
-  ); // testing link
+  ); 
   await user.save();
   res.status(200).json({ message: "otp sent to your email", user });
 };
@@ -220,7 +221,6 @@ export const authServiceGmail = async (req, res, next) => {
   const ticket = await client.verifyIdToken({
     idToken,
     audience: process.env.WEB_CLIENT_ID,
-    //[WEB_CLIENT_ID_1, WEB_CLIENT_ID_2, WEB_CLIENT_ID_3]
   });
   const { email, given_name, family_name, email_verified, sub } =
     ticket.getPayload();

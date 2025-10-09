@@ -1,4 +1,3 @@
-// error handling middleware
 export const errorMiddleware = (err, req, res, next) => {
   console.error(err.stack);
   if (err.message == "jwt expired") {

@@ -15,14 +15,12 @@ app.use(express.json());
 
 app.use(cors(corsOptions));
 app.use(helmet());
-// app.use(limiter);
+app.use(limiter);
 
 app.use("/message", controllers.messageRouter);
 app.use("/users", controllers.userRouter, controllers.authRouter);
 
 app.use("/", (req, res) => {
-  //log the request url
-  console.log(`Request URL: ${req.url}`);
   res.send("Congratulations! Your server is running successfully.");
 });
 
@@ -32,5 +30,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-
-// git add . && git commit -m "test resetPassword" && git push origin

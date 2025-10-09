@@ -3,7 +3,6 @@ export const GenderEnum = {
   FEMALE: "female",
 };
 
-//admin user super_admin
 export const RoleEnum = {
     ADMIN: "admin",
     USER: "user",

@@ -4,7 +4,6 @@ import {User} from "../../../DB/Models/index.js";
 export const sendMessageService = async (req, res) => {
   const { content } = req.body;
   const { receiverId } = req.params;
-  // console.log(receiverId);
   
 
   const user = await User.findById(receiverId);
@@ -23,7 +22,6 @@ export const sendMessageService = async (req, res) => {
 
 export const getMessagesService = async (req, res) => {
   const {_id } = req.user;
-  // console.log(_id);
   const messages = await Message.find({
     receiverId: _id,
   }).populate([{

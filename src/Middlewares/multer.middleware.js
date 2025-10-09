@@ -2,7 +2,6 @@ import multer from "multer";
 import fs from "fs";
 import { allowedFileExtensions, fileTypes } from "../Constants/index.js";
 
-// Ensure upload directories exist
 const checkOrCreateFolder = (folderPath) => {
   if (!fs.existsSync(folderPath)) {
     fs.mkdirSync(folderPath, { recursive: true });
