@@ -1,6 +1,6 @@
 import * as utils from "../index.js";
 import * as redis from "../../DB/Models/Redis/index.js";
-import { v4 as uuidv4 } from "uuid";
+import jwt from "jsonwebtoken";
 import {
   OTPEmailHTML,
   resetPasswordEmailLinkHTML,
@@ -24,13 +24,9 @@ export const createSendOTPEmail = async (email, type) => {
   );
 };
 
-export const resetPasswordLinkEmail = async (email, _id) => {
-  const token = utils.encrypt(utils.generateToken({ _id }, "15m"));
-  const uniqueString = uuidv4().padEnd(15);
-  utils.sendEmail({ to: email, ...resetPasswordEmailLinkHTML(uniqueString) });
-  return await utils.setRedisKey(
-    redis.OTPRedisModel.key(uniqueString, redis.OTPRedisModel.types.RESET),
-    token,
-    redis.OTPRedisModel.ttl
-  );
+export const resetPasswordLinkEmail = async (email) => {
+  const token = utils.generateToken({ email }, "15m");
+  const encryptedToken = utils.encrypt(token);
+
+  utils.sendEmail({ to: email, ...resetPasswordEmailLinkHTML(encryptedToken) });
 };

@@ -161,7 +161,7 @@ export const forgotPasswordLink = async (req, res, next) => {
   if (!user) {
     return next(new Error("Invalid email"));
   }
-  await utils.resetPasswordLinkEmail(email, user._id);
+  await utils.resetPasswordLinkEmail(email);
   res.status(200).json({ message: "otp sent to your email", user });
 };
 
@@ -179,26 +179,23 @@ export const forgotPasswordOTP = async (req, res, next) => {
 };
 
 export const resetPasswordWithLink = async (req, res, next) => {
-  const linkToken = req.params.token;
-  const token = await utils.getOTPFromRedis(
-    linkToken,
-    OTPRedisModel.types.RESET
-  );  
-  if (!token) {
-    return next(new Error("Invalid or expired link"));
-  }
-  const decrypted = utils.decrypt(token);
-  const { _id } = utils.verifyToken(decrypted);
   const { newPassword } = req.body;
-  const user = await User.findById(_id);
+  const token = utils.decrypt(req.params.token);
+  const isblackListed = await utils.isTokenBlackListed(token.jti)
+  if (isblackListed) {
+    return next(new Error("expired link please try again later"));
+  }
+  const { email } = utils.verifyToken(token);
+  const user = await User.findOne({email});
   if (!user) {
     return next(new Error("Invalid token"));
   }
+
   if (utils.compareHash(newPassword, user.password)) {
     return next(new Error("New password must be different from old password"));
   }
   user.password = utils.hash(newPassword);
-  await utils.deleteOTPFromRedis(linkToken, OTPRedisModel.types.RESET);
+  await utils.BlackListToken({tokenId: token.jti, expirationDate: new Date(token.exp * 1000), userId: user._id});
   await user.save();
   res.status(200).json({ message: "password reset successfully", user });
 };

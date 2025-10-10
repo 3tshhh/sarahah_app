@@ -17,7 +17,6 @@ const transporter = nodemailer.createTransport({
 const otpEmitter = new EventEmitter();
 
 otpEmitter.on("sendEmail", (to, subject, template) => {
-  console.log(to, subject, template.length);
   transporter.sendMail({
     from: "Sarahah App",
     to,
@@ -28,9 +27,6 @@ otpEmitter.on("sendEmail", (to, subject, template) => {
 
 
 export const sendEmail = async ({to, subject ,template}) => {
-  console.log(to, subject, template.length);
-  
-  
   otpEmitter.emit(
     "sendEmail",
     to,

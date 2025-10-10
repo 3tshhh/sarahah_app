@@ -66,7 +66,12 @@ const userSchema = new Schema(
     },
     devices:[
       { type: [String] },
-    ]
+    ],
+    resetPasswordAttempts: {
+      type: Number,
+      default: 0,
+      max: [3, "you have exceeded the maximum number of password reset attempts, please try again later"],
+    }
   },
   {
     timestamps: true,
