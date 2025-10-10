@@ -1,23 +1,15 @@
 import { Router } from "express";
 import * as user from "../Services/auth.service.js";
-import {
-  authenticateMiddleware,
-  getDeviceInfo,
-  valitationMiddleware,
-} from "../../../Middlewares/index.js";
-import { signUpSchema } from "../../../Validators/Schema/user.schema.js";
-import rateLimit, { ipKeyGenerator } from "express-rate-limit";
-import RedisStore from "rate-limit-redis";
-import { redisClient } from "../../../DB/Connections/redis.db.connection.js";
-import MongoStore from "rate-limit-mongo/lib/mongoStore.js";
+import { authenticateMiddleware, getDeviceInfo, valitationMiddleware } from "../../../Middlewares/index.js";
+import { confirmEmailSchema, forgotPasswordSchema, loginSchema, resendOTPSchema, resetPasswordSchema, signUpSchema, updatePasswordSchema } from "../../../Validators/Schema/user.schema.js";
 
 const authRouter = Router();
 
 //auth routes
-authRouter.post("/signup", valitationMiddleware(signUpSchema), user.signup);
-authRouter.post("/login", getDeviceInfo, user.login);
-authRouter.post("/confirm-email", user.confirmAccount);
-authRouter.post("/resend-otp", user.resendConfirmOTP);
+authRouter.post("/signup",valitationMiddleware(signUpSchema), user.signup);
+authRouter.post("/login",valitationMiddleware(loginSchema), getDeviceInfo, user.login);
+authRouter.post("/confirm-email",valitationMiddleware(confirmEmailSchema), user.confirmEmail);
+authRouter.post("/resend-otp",valitationMiddleware(resendOTPSchema), user.resendOTP);
 authRouter.post("/logout", authenticateMiddleware, user.logout);
 authRouter.post("/refresh-token", user.refreshToken);
 authRouter.post("/forgot-password-link", user.forgotPasswordLink);
@@ -43,6 +35,7 @@ authRouter.patch("/reset-password/:token",rateLimit({
 authRouter.patch("/reset-password-otp", user.resetPasswordWithOTP);
 authRouter.patch(
   "/update-password",
+  valitationMiddleware(updatePasswordSchema),
   authenticateMiddleware,
   user.updatePassword
 );
