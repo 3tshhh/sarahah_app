@@ -6,7 +6,7 @@ import {
   valitationMiddleware,
 } from "../../../Middlewares/index.js";
 import { signUpSchema } from "../../../Validators/Schema/user.schema.js";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
 import { redisClient } from "../../../DB/Connections/redis.db.connection.js";
 import MongoStore from "rate-limit-mongo/lib/mongoStore.js";
@@ -23,9 +23,11 @@ authRouter.post("/refresh-token", user.refreshToken);
 authRouter.post("/forgot-password-link", user.forgotPasswordLink);
 authRouter.post("/forgot-password-otp", user.forgotPasswordOTP);
 authRouter.patch("/reset-password/:token",rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 30 * 60 * 1000, // 15 minutes
   max: 5, // limit each IP to 5 requests per windowMs
-  message: "Too many password reset attempts from this IP, please try again after 15 minutes",
+  handler: (req, res)=>{
+    res.status(429).json({ message: "" });
+  },
   statusCode: 429,
   legacyHeaders: false,
   keyGenerator: (req) => {
@@ -33,7 +35,9 @@ authRouter.patch("/reset-password/:token",rateLimit({
     return `${ip}-${req.path}`;
   },
   store: new MongoStore({
-    
+    uri: process.env.MONGO_URL,
+    collectionName: "rateLimits",
+    expireTimeMs: 30 * 60 * 1000,
   })
 }), user.resetPasswordWithLink);
 authRouter.patch("/reset-password-otp", user.resetPasswordWithOTP);
