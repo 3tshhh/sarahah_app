@@ -11,4 +11,4 @@ export const redisConnect = async () => {
   }
 };
 
-export {redisClient}
+export { redisClient };

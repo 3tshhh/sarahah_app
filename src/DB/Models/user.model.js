@@ -53,11 +53,6 @@ const userSchema = new Schema(
       enum: Object.values(RoleEnum),
       default: RoleEnum.USER,
     },
-    otps: {
-      reset: { type: String, default: null },
-      confirm: { type: String, default: null },
-      createdAt: { type: Date, default: null },
-    },
     phone: { type: String },
     provider: {
       type: String,
@@ -99,7 +94,7 @@ const userSchema = new Schema(
 
 userSchema.index(
   { firstName: 1, lastName: 1 },
-  { name: "idx_first_last_unique", unique: true }
+  { name: "idx_first_last", unique: false }
 );
 
 userSchema.virtual("Messages", {

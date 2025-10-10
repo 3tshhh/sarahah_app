@@ -1,34 +1,6 @@
 import nodemailer from "nodemailer";
-import fs from "node:fs";
 import EventEmitter from "events";
-import {
-  OTPTemplate,
-  passwordResetTemplate,
-  resetUrl,
-} from "../Constants/strings.constants.js";
-
-const otpEmitter = new EventEmitter();
-
-otpEmitter.on("sendEmail", (to, subject, otp) => {
-  let html
-  if (otp.includes("reset-password")) {
-    const token = otp.split(" ")[1];
-    html = fs.readFileSync(passwordResetTemplate)
-      .toString()
-      .replace(/{{VERIFICATION_LINK}}/g, `${resetUrl}${token}`);
-  } else {
-    html = fs.readFileSync(OTPTemplate).toString().replace(/{{\s*OTP\s*}}/g, otp.toUpperCase());
-  }
-
-  const mailOptions = {
-    from: 'Sarahah App',
-    to,
-    subject,
-    html,
-  };
-
-  transporter.sendMail(mailOptions);
-});
+import { log } from "console";
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -41,6 +13,28 @@ const transporter = nodemailer.createTransport({
   secure: false,
 });
 
-export const sendOTPEmail = async (to, subject, otp) => {
-  otpEmitter.emit("sendEmail", to, subject, otp);
+
+const otpEmitter = new EventEmitter();
+
+otpEmitter.on("sendEmail", (to, subject, template) => {
+  console.log(to, subject, template.length);
+  transporter.sendMail({
+    from: "Sarahah App",
+    to,
+    subject,
+    html: template,
+  });
+});
+
+
+export const sendEmail = async ({to, subject ,template}) => {
+  console.log(to, subject, template.length);
+  
+  
+  otpEmitter.emit(
+    "sendEmail",
+    to,
+    subject,
+    template
+  );
 };

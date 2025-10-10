@@ -13,8 +13,8 @@ export const authenticateMiddleware = async (req, res, next) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
   const decoded = verifyToken(token);
-
-  if (await isTokenBlackListed(decoded.jti)) {
+  const isblackListed = await isTokenBlackListed(decoded.jti)
+  if (isblackListed) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 

@@ -1,10 +1,8 @@
-import { User, BlackListedToken } from "../../../DB/Models/index.js";
+import { OTPRedisModel, User } from "../../../DB/Models/index.js";
 import * as utils from "../../../Utils/index.js";
-import { OTPTemplate } from "../../../Constants/index.js";
 import { OAuth2Client } from "google-auth-library";
 import { ProvidersEnum } from "../../../Common/enums/user.enum.js";
 import { v4 as uuidv4 } from "uuid";
-
 export const signup = async (req, res, next) => {
   const { firstName, lastName, email, password, gender, age, phone } = req.body;
 
@@ -15,24 +13,21 @@ export const signup = async (req, res, next) => {
   if (isEmailExist) {
     return next(new Error("email already exists"));
   }
-
-  const hashedPassword = utils.hash(password);
-
-  const encryptedPhone = utils.encrypt(phone);
-
-  const otp = utils.createOTP();
-  utils.sendOTPEmail(email, "Confirm your email", otp);
+  const otpSent = await utils.createSendOTPEmail(email);
+  if (!otpSent) {
+    return next(new Error("Please try again"));
+  }
 
   const user = new User({
     firstName,
     lastName,
     email,
-    password: hashedPassword,
+    password: utils.hash(password),
     gender,
     age,
-    phone: encryptedPhone,
-    "otps.confirm": utils.hash(otp),
-    "otps.createdAt": Date.now(),
+    phone: utils.encrypt(phone),
+    isConfirmed: false,
+    provider: ProvidersEnum.LOCAL,
   });
   await user.save();
   res.status(201).json({ message: "account created successfully", user });
@@ -44,46 +39,40 @@ export const confirmAccount = async (req, res, next) => {
   if (!user) {
     return next(new Error("Invalid email or otp"));
   }
-  if (user.otps.createdAt < Date.now() - 3 * 60 * 1000)
-    return next(new Error("otp expired"));
-
-  if (user.otps.confirm) {
-    if (!utils.compareHash(otp, user.otps.confirm)) {
-      return next(new Error("Invalid email or otp"));
-    }
-    user.isConfirmed = true;
-    user.otps.createdAt = null;
-    user.otps.confirm = null;
+  if (user.isConfirmed) {
+    return next(new Error("Account already confirmed"));
   }
-  if (user.otps.reset) {
-    if (!utils.compareHash(otp, user.otps.reset)) {
-      return next(new Error("Invalid email or otp"));
-    }
-    user.otps.createdAt = null;
-    user.otps.reset = null;
+  const hashedOTP = await utils.getOTPFromRedis(
+    email,
+    OTPRedisModel.types.CONFIRM
+  );
+  if (!hashedOTP) {
+    return next(new Error("OTP expired"));
+  }
+  if (!utils.compareHash(otp.toLowerCase(), hashedOTP)) {
+    return next(new Error("Invalid email or otp"));
   }
 
+  user.isConfirmed = true;
+  await utils.deleteOTPFromRedis(email, OTPRedisModel.types.CONFIRM);
   await user.save();
   res.status(200).json({ message: "email confirmed successfully", user });
 };
 
-export const resendOTP = async (req, res, next) => {
+export const resendConfirmOTP = async (req, res, next) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
     return next(new Error("Invalid email"));
   }
-  const otp = utils.createOTP();
-  utils.sendOTPEmail(email, "resend OTP", OTPTemplate, otp);
 
-  if (!user.isConfirmed) {
-    user.otps.confirm = utils.hash(otp);
-  } else {
-    user.otps.reset = utils.hash(otp);
+  if (user.isConfirmed) {
+    return next(new Error("Account already confirmed"));
   }
-  user.otps.createdAt = Date.now();
-
-  await user.save();
+  const otpSent = utils.createSendOTPEmail(email);
+  if (!otpSent) {
+    return next(new Error("Please try again"));
+  }
 
   res.status(200).json({ message: "otp resent successfully", user });
 };
@@ -145,9 +134,6 @@ export const refreshToken = async (req, res, next) => {
 
 export const logout = async (req, res) => {
   const { userToken } = req;
-  // const blacklistedToken = await BlackListedToken.create({
-  //   ...userToken,
-  // });
   const blacklistedToken = await utils.BlackListToken(userToken);
   res.status(200).json({ message: "logout successfully", blacklistedToken });
 };
@@ -169,52 +155,78 @@ export const updatePassword = async (req, res, next) => {
   });
 };
 
-/**
- *
- * @description sends an email with a link that has an encrypted token has the user id and otp for 15 minutes to reset the password
- *
- */
-export const forgotPassword = async (req, res, next) => {
+export const forgotPasswordLink = async (req, res, next) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
     return next(new Error("Invalid email"));
   }
-  const otp = utils.createOTP();
-  user.otps.reset = utils.hash(otp);
-  const resetToken = utils.encrypt(
-    utils.generateToken({ _id: user._id, otp }, "15m")
-  );
-  utils.sendOTPEmail(
-    email,
-    "Reset your password",
-    `reset-password ${resetToken}`
-  ); 
-  await user.save();
+  await utils.resetPasswordLinkEmail(email, user._id);
   res.status(200).json({ message: "otp sent to your email", user });
 };
 
-export const resetPassword = async (req, res, next) => {
+export const forgotPasswordOTP = async (req, res, next) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    return next(new Error("Invalid email"));
+  }
+  const otpSent = await utils.createSendOTPEmail(email, OTPRedisModel.types.RESET);
+  if (!otpSent) {
+    return next(new Error("Please try again"));
+  }
+  res.status(200).json({ message: "otp sent to your email", user });
+};
+
+export const resetPasswordWithLink = async (req, res, next) => {
+  const linkToken = req.params.token;
+  const token = await utils.getOTPFromRedis(
+    linkToken,
+    OTPRedisModel.types.RESET
+  );  
+  if (!token) {
+    return next(new Error("Invalid or expired link"));
+  }
+  const decrypted = utils.decrypt(token);
+  const { _id } = utils.verifyToken(decrypted);
   const { newPassword } = req.body;
-  const { token } = req.params;
-  const { _id, otp } = utils.verifyToken(utils.decrypt(token));
   const user = await User.findById(_id);
   if (!user) {
     return next(new Error("Invalid token"));
   }
-
-  if (!utils.compareHash(otp, user.otps.reset)) {
-    return next(new Error("Invalid token"));
-  }
-
   if (utils.compareHash(newPassword, user.password)) {
     return next(new Error("New password must be different from old password"));
   }
   user.password = utils.hash(newPassword);
-  user.otps.reset = null;
+  await utils.deleteOTPFromRedis(linkToken, OTPRedisModel.types.RESET);
   await user.save();
   res.status(200).json({ message: "password reset successfully", user });
 };
+
+export const resetPasswordWithOTP = async (req, res, next) => {
+  const { email, otp, newPassword } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    return next(new Error("Invalid email or otp"));
+  }
+  const hashedOTP = await utils.getOTPFromRedis(
+    email,
+    OTPRedisModel.types.RESET
+  );
+  if (!hashedOTP) {
+    return next(new Error("OTP expired"));
+  } 
+  if (!utils.compareHash(otp.toLowerCase(), hashedOTP)) {
+    return next(new Error("Invalid email or otp"));
+  }
+  if (utils.compareHash(newPassword, user.password)) {
+    return next(new Error("New password must be different from old password"));
+  }
+  user.password = utils.hash(newPassword);
+  await utils.deleteOTPFromRedis(email, OTPRedisModel.types.RESET);
+  await user.save();
+  res.status(200).json({ message: "password reset successfully", user });
+}
 
 export const authServiceGmail = async (req, res, next) => {
   const { idToken } = req.body;
