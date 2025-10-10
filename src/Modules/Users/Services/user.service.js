@@ -42,12 +42,8 @@ export const updateUser = async (req, res, next) => {
 
 export const deleteUser = async (req, res, next) => {
   const user = req.user;
+  await DeleteFileCloudinary(user.profilePicture.public_id);
   const deletedUser = await user.deleteOne();
-  try {
-    fs.unlinkSync(deletedUser.profilePicture);
-  } catch (err) {
-    return next;
-  }
   await utils.BlackListToken(userToken);
 
   await Message.deleteMany({ receiverId: _id });

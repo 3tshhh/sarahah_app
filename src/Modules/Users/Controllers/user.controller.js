@@ -7,10 +7,11 @@ import {
   localUpload,
 } from "../../../Middlewares/index.js";
 import { Privileges } from "../../../Common/enums/user.enum.js";
+import { updateProfileSchema } from "../../../Validators/Schema/user.schema.js";
 
 const userRouter = Router();
 //user routes
-userRouter.put("/update", authenticateMiddleware, user.updateUser);
+userRouter.put("/update",valitationMiddleware(updateProfileSchema), authenticateMiddleware, user.updateUser);
 userRouter.delete("/delete", authenticateMiddleware, user.deleteUser);
 userRouter.post(
   "/profile",

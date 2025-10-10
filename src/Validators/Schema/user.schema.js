@@ -28,3 +28,53 @@ export const signUpSchema = {
       .required(),
   }),
 };
+
+export const loginSchema = {
+  body: Joi.object({
+    email: generalRules.email.required(),
+    password: generalRules.password.required(),
+  }),
+};
+
+export const confirmEmailSchema = {
+  body: Joi.object({
+    email: generalRules.email.required(),
+    otp: Joi.string().pattern(/^[0-9][a-z][A-Z]{6,6}$/).required(),
+  }),
+};
+
+export const resendOTPSchema = {
+  body: Joi.object({
+    email: generalRules.email.required(),
+  }),
+};
+export const resetPasswordSchema = {
+  body: Joi.object({
+    newPassword: generalRules.password,
+    confirmPassword: Joi.string()
+      .valid(Joi.ref("password"))
+      .required()
+      .messages({ "any.only": "confirm password does not match" }),
+  }),
+};
+
+const updatePasswordSchema = resetPasswordSchema
+updatePasswordSchema.body.currentPassword =  generalRules.password.required()
+
+export { updatePasswordSchema };
+
+
+export const updateProfileSchema = {
+  body: Joi.object({
+    firstName: Joi.string().min(3).max(30).alphanum().optional(),
+    lastName: Joi.string().min(3).max(30).optional(),
+    email: generalRules.email.optional(),
+    gender: Joi.string()
+      .valid(...Object.values(GenderEnum))
+      .optional(),
+    age: Joi.number().min(13).max(120).optional(),
+    phone: Joi.string().pattern(/^[0-9]{10,15}$/).optional(),
+  }),
+};
+
+
