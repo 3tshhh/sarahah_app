@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as user from "../Services/auth.service.js";
 import { authenticateMiddleware, getDeviceInfo, valitationMiddleware } from "../../../Middlewares/index.js";
-import { confirmEmailSchema, forgotPasswordSchema, loginSchema, resendOTPSchema, resetPasswordSchema, signUpSchema, updatePasswordSchema } from "../../../Validators/Schema/user.schema.js";
+import { confirmEmailSchema, loginSchema, resendOTPSchema, signUpSchema, updatePasswordSchema } from "../../../Validators/Schema/user.schema.js";
 
 const authRouter = Router();
 
