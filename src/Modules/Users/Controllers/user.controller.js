@@ -4,7 +4,7 @@ import {
   authenticateMiddleware,
   authorizationMiddleware,
   hostUpload,
-  localUpload,
+  valitationMiddleware,
 } from "../../../Middlewares/index.js";
 import { Privileges } from "../../../Common/enums/user.enum.js";
 import { updateProfileSchema } from "../../../Validators/Schema/user.schema.js";
